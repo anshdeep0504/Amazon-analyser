@@ -1,4 +1,5 @@
 import { ProductAnalysis } from './types';
+import sentimentAnalysis from 'sentiment';  // A simple sentiment analysis library for Node.js
 
 export function performAdvancedAnalysis(reviews: string[]): ProductAnalysis {
   // Implement advanced analytics logic here
@@ -21,30 +22,50 @@ function generateId(): string {
 }
 
 function calculateMetrics(reviews: string[]) {
-  // Implement metrics calculation
+  // Perform sentiment analysis on each review
+  const sentimentAnalyzer = new sentiment();
+  const sentimentResults = reviews.map(review => sentimentAnalyzer.analyze(review));
+
+  const positiveReviews = sentimentResults.filter(result => result.score > 0).length;
+  const neutralReviews = sentimentResults.filter(result => result.score === 0).length;
+  const negativeReviews = sentimentResults.filter(result => result.score < 0).length;
+
   return {
-    overallScore: 4.2,
+    overallScore: calculateAverageScore(sentimentResults),
     reviewCount: reviews.length,
     sentimentDistribution: {
-      positive: 70,
-      neutral: 20,
-      negative: 10
+      positive: (positiveReviews / reviews.length) * 100,
+      neutral: (neutralReviews / reviews.length) * 100,
+      negative: (negativeReviews / reviews.length) * 100
     }
   };
 }
 
+function calculateAverageScore(results: any[]): number {
+  const totalScore = results.reduce((acc, result) => acc + result.score, 0);
+  return totalScore / results.length;
+}
+
 function generateInsights(reviews: string[]) {
-  // Implement SWOT analysis
+  // Implement insights using sentiment and common themes
+  const positiveReviews = reviews.filter(review => sentimentAnalysis(review).score > 0);
+  const negativeReviews = reviews.filter(review => sentimentAnalysis(review).score < 0);
+
   return {
-    strengths: ['High quality materials', 'Excellent fit'],
-    weaknesses: ['Price point concerns', 'Limited size range'],
-    opportunities: ['Expand size range', 'Introduce premium line'],
-    threats: ['Increasing competition', 'Rising material costs']
+    strengths: extractCommonThemes(positiveReviews),
+    weaknesses: extractCommonThemes(negativeReviews),
+    opportunities: ['Improve product quality', 'Expand market reach'],
+    threats: ['Increasing competition', 'Price wars']
   };
 }
 
+function extractCommonThemes(reviews: string[]): string[] {
+  // A placeholder for common theme extraction (could be done using NLP libraries)
+  return reviews.map(review => review.split(' ').slice(0, 3).join(' ')); // Basic example
+}
+
 function analyzeCompetitivePosition(reviews: string[]) {
-  // Implement competitive analysis
+  // Implement competitive analysis based on reviews
   return {
     pricePerception: 'competitive' as const,
     qualityPerception: 'high' as const,
@@ -53,14 +74,23 @@ function analyzeCompetitivePosition(reviews: string[]) {
 }
 
 function analyzeTrends(reviews: string[]) {
-  // Implement trend analysis
+  // Implement trend analysis based on sentiment over time
+  const sentimentAnalyzer = new sentiment();
+  const sentimentScores = reviews.map(review => sentimentAnalyzer.analyze(review).score);
+
   return {
-    sentiment: 'improving' as const,
-    volume: 'increasing' as const,
-    keywordTrends: [
-      { keyword: 'quality', trend: 'up', frequency: 75 },
-      { keyword: 'price', trend: 'stable', frequency: 45 },
-      { keyword: 'fit', trend: 'up', frequency: 60 }
-    ]
+    sentiment: sentimentScores.reduce((acc, score) => acc + score, 0) > 0 ? 'improving' : 'declining',
+    volume: reviews.length > 50 ? 'increasing' : 'stable',
+    keywordTrends: analyzeKeywords(reviews)
   };
+}
+
+function analyzeKeywords(reviews: string[]): { keyword: string; trend: string; frequency: number }[] {
+  // Placeholder for advanced keyword trend analysis (could use NLP techniques for this)
+  const keywords = ['quality', 'price', 'fit', 'comfort'];  // Example keywords
+  return keywords.map(keyword => ({
+    keyword,
+    trend: 'stable',  // Placeholder for real keyword trend logic
+    frequency: reviews.filter(review => review.includes(keyword)).length
+  }));
 }
